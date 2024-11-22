@@ -245,7 +245,31 @@ public:
         std::vector<std::pair<Key, Value>> res;
         postorder_traversal(root_, res);
         return res;
-    }       
+    }      
+
+    KeyValueAVLNode<Key, Value>* findClosest(const Key& key) const {
+    KeyValueAVLNode<Key, Value>* current = root_;
+    KeyValueAVLNode<Key, Value>* closest = nullptr;
+
+    while (current) {
+        // Actualiza el nodo más cercano si es el primero encontrado o si está más cerca
+        if (!closest || abs(key.compare(current->key)) < abs(key.compare(closest->key))) {
+            closest = current;
+        }
+
+        // Decide hacia dónde moverse en el árbol
+        if (key < current->key) {
+            current = current->left;  // Mover a la izquierda
+        } else if (key > current->key) {
+            current = current->right; // Mover a la derecha
+        } else {
+            break; // Nodo exacto encontrado
+        }
+    }
+
+    return closest;
+    }
+ 
 
 private:
 
@@ -359,28 +383,15 @@ private:
      *
      *  @return Pointer to the node with the specified key, or nullptr if not found.
      */
-    KeyValueAVLNode<Key, Value>* find(KeyValueAVLNode<Key, Value>* node, const Key& key, KeyValueAVLNode<Key, Value>* closest = nullptr) const {
-    if (!node) {
-        // Si llegamos a un nodo nulo, devolvemos el nodo más cercano encontrado
-        return closest;
+    KeyValueAVLNode<Key, Value>* find(KeyValueAVLNode<Key, Value>* node, const Key& key) const
+    {
+        if ((node == nullptr) || (key == node->key))
+            return node;
+        else if (key < node->key)
+            return find(node->left, key);
+        else
+            return find(node->right, key);
     }
-
-    // Actualizar el nodo más cercano si el nodo actual está más cerca del valor buscado
-    if (!closest || abs(key.compare(node->key)) < abs(key.compare(closest->key))) {
-        closest = node;
-    }
-
-    if (key == node->key) {
-        // Si encontramos una coincidencia exacta, devolvemos este nodo
-        return node;
-    } else if (key < node->key) {
-        // Si la clave buscada es menor, ir al subárbol izquierdo
-        return find(node->left, key, closest);
-    } else {
-        // Si la clave buscada es mayor, ir al subárbol derecho
-        return find(node->right, key, closest);
-    }
-}    
 
     /**
      *  Inserts a new node with the given key-value pair into the AVL tree starting from the given node.
