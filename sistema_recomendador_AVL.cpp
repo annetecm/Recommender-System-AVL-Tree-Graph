@@ -4,7 +4,10 @@
 #include <chrono>
 #include "DynamicArray_SR.hpp"
 #include "KeyValueAVLTree.hpp"
+#include <unordered_map>
+#include <chrono>
 #include "WeightedUndirectedGraph.hpp"
+
 
 using namespace std;
 
@@ -58,6 +61,51 @@ void loadDataIntoArray(const string& filename, DynamicArray<Libro>& arr) {
     }
 
     file.close();
+}
+ // Paso 2 - Optimización de búsquedas por categorías
+ template<typename Func>
+auto medirTiempo(Func&& f) {
+    auto inicio = chrono::high_resolution_clock::now();
+    f();
+    auto fin = chrono::high_resolution_clock::now();
+    return chrono::duration_cast<chrono::microseconds>(fin - inicio).count();
+}
+
+void construirAVLDeCategorias(const DynamicArray<Libro>& libros, KeyValueAVLTree<string, unordered_map<int, Libro>>& avl) {
+    for (int i = 0; i < libros.size(); i++) {
+        const string& categoria = libros[i].genre;
+
+        KeyValueAVLNode<string, unordered_map<int, Libro>>* nodo = avl.find(categoria);
+
+        if (nodo) {
+            nodo->value[i] = libros[i];  // Añadir libro al mapa asociado
+        } else {
+            unordered_map<int, Libro> mapa;
+            mapa[i] = libros[i];
+            avl.insert(categoria, mapa);  // Insertar nueva categoría
+        }
+    }
+}
+
+void buscarPorCategoria(const string& categoria, KeyValueAVLTree<string, unordered_map<int, Libro>>& avl) {
+    auto inicio = chrono::high_resolution_clock::now();
+
+    KeyValueAVLNode<string, unordered_map<int, Libro>>* nodo = avl.find(categoria);
+
+    auto fin = chrono::high_resolution_clock::now();
+    auto duracion = chrono::duration_cast<chrono::microseconds>(fin - inicio).count();
+
+    if (nodo) {
+        cout << "Categoría encontrada: " << categoria << "\n";
+        cout << "Libros en esta categoría:\n";
+        for (const auto& [index, libro] : nodo->value) {
+            cout << libro << "\n";
+        }
+    } else {
+        cout << "Categoría no encontrada: " << categoria << "\n";
+    }
+
+    cout << "Tiempo de búsqueda: " << duracion << " microsegundos\n";
 }
 
 int main() {
@@ -118,6 +166,28 @@ int main() {
         std::cerr << "Error: " << e.what() << std::endl;
     }
 
+     // Parte 2: Crear el árbol AVL para gestionar categorías de libros
+    KeyValueAVLTree<string, unordered_map<int, Libro>> tree;
+
+    // Insertar los libros en el árbol AVL
+    auto tiempoConstruccion = medirTiempo([&]() {
+        construirAVLDeCategorias(libros_final, tree);
+    });
+    cout << "Tiempo para construir el árbol AVL: " << tiempoConstruccion << " microsegundos\n";
+
+    // Menú para buscar categorías
+    while (true) {
+        string categoria;
+        cout << "\nIngrese la categoría que desea buscar (o escriba 'salir' para terminar): ";
+        getline(cin, categoria);
+
+        if (categoria == "salir") {
+            break;
+        }
+
+        buscarPorCategoria(categoria, tree);
+    }
+
     double threshold = 0.6;
     Graph grafo;
 
@@ -135,6 +205,7 @@ int main() {
     cout << "Nombre del libro que te interesa para ver sus similares: ";
     getline(cin, titulo);
     grafo.displayAdjacent(titulo);
+
 
     return 0;
 }
