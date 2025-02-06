@@ -11,7 +11,6 @@ Each recommended book is assigned a **similarity weight**, where a higher weight
 - Uses **author, genre, and publication date** as similarity factors.
 - Preloaded database of books to provide quick recommendations.
 - Assigns a **weighted score** to each recommendation based on similarity.
-- Utilizes an **AVL tree structure** to optimize data retrieval and improve performance.
 
 ## 🛠️ Installation
 1. Clone this repository:
