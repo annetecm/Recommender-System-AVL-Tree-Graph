@@ -32,5 +32,5 @@ Each recommended book is assigned a **similarity weight**, where a higher weight
 2. Enter the title of a book you are interested in.
 3. The system will return a list of recommended books ranked by similarity.
 
-##🗄️Database
+## 🗄️ Database
 The system relies on a **preloaded database** of books. If you want to update or expand the dataset, you can modify the libro_superfinal.csv file.
